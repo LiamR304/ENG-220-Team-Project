@@ -199,7 +199,7 @@ def build_map(subset, color, opacity, title, boundaries=boundaries, towns=towns)
         ).add_to(m)
 
     # Town boundaries (outline only)
-    boundary_layer = folium.FeatureGroup(name="Town boundaries")
+    boundary_layer = folium.FeatureGroup(name="Municipality boundaries")
 
     for name, pts in boundaries.items():
         folium.Polygon(
@@ -240,7 +240,7 @@ def tier_coverage(lookup, total):
         yield "any", tier, union_cells
 
 
-@st.cache_data(show_spinner="Computing coverage by town...")
+@st.cache_data(show_spinner="Computing coverage municipality...")
 def coverage_summary():
     lookup = make_lookup(load_csv(str(CURRENT_CSV)))
     rows = []
@@ -420,11 +420,11 @@ if section == "Coverage map":
     dataset = st.sidebar.selectbox("Dataset", ["2026 (all towns)", "Cuba 2025", "Cuba 2022"])
 
     if dataset == "2026 (all towns)":
-        area = st.sidebar.selectbox("Town", [ALL_TOWNS] + list(boundaries))
+        area = st.sidebar.selectbox("Municipality", [ALL_TOWNS] + list(boundaries))
         map_df = load_csv(str(CURRENT_CSV))
     else:
         area = "Cuba, NM"
-        st.sidebar.selectbox("Town", [area], disabled=True)
+        st.sidebar.selectbox("Municipality", [area], disabled=True)
         map_df = load_csv(str(HIST_CSV[dataset.split()[-1]]))
 
     provider = st.sidebar.selectbox("Provider", providers, format_func=lambda p: provider_names[str(p)])
@@ -455,7 +455,7 @@ if section == "Coverage map":
     subset = tier_df[in_area]
 
     if subset.empty:
-        st.warning("No coverage data for this town, provider, speed tier, and dataset. (From period before widescale 5G adoption)")
+        st.warning("No coverage data for this municipality, provider, speed tier, and dataset. (From period before widescale 5G adoption)")
     else:
         total_cells = len(subset)
         if total_cells > cap:
