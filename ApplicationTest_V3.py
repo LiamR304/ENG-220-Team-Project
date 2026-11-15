@@ -21,8 +21,9 @@ from streamlit_folium import st_folium
 
 st.set_page_config(page_title="NM Broadband Coverage", layout="wide")
 st.title("New Mexico 5G Broadband Coverage")
-
-
+st.write("These maps and charts compare 5G broadband coverage in Cuba, NM and three other "
+         "small New Mexico municipalities.")
+st.divider()
 # Data paths and constants:
 
 in_dir = Path(__file__).parent / "Datasets"
@@ -401,6 +402,7 @@ def line_chart_png():
     return fig_to_png(fig)
 
 
+
 # Page layout: only the section picked is computed, so the app never holds all three at once
 
 section = st.radio(
@@ -414,22 +416,20 @@ section = st.radio(
 if section == "Coverage map":
     st.header("Coverage map")
 
-    c1, c2, c3, c4 = st.columns(4)
-    dataset = c1.selectbox("Dataset", ["2026 (all towns)", "Cuba 2025", "Cuba 2022"])
+    st.sidebar.header("Map options")   # optional title for the sidebar
+    dataset = st.sidebar.selectbox("Dataset", ["2026 (all towns)", "Cuba 2025", "Cuba 2022"])
 
     if dataset == "2026 (all towns)":
-        area = c2.selectbox("Town", [ALL_TOWNS] + list(boundaries))
+        area = st.sidebar.selectbox("Town", [ALL_TOWNS] + list(boundaries))
         map_df = load_csv(str(CURRENT_CSV))
     else:
         area = "Cuba, NM"
-        c2.selectbox("Town", [area], disabled=True)
+        st.sidebar.selectbox("Town", [area], disabled=True)
         map_df = load_csv(str(HIST_CSV[dataset.split()[-1]]))
 
-    provider = c3.selectbox("Provider", providers, format_func=lambda p: provider_names[str(p)])
-    tier_sel = c4.selectbox("Speed tier (down/up Mbps)", list(speed_tiers),
-                            format_func=lambda t: f"{t[0]}/{t[1]}")
-    mindown, minup = tier_sel
-    style = speed_tiers[tier_sel]
+    provider = st.sidebar.selectbox("Provider", providers, format_func=lambda p: provider_names[str(p)])
+    tier_sel = st.sidebar.selectbox("Speed tier (down/up Mbps)", list(speed_tiers),
+                                    format_func=lambda t: f"{t[0]}/{t[1]}")
 
     # Draw the cells inside the chosen town's community box (or all four boxes)
     selected = list(boundaries) if area == ALL_TOWNS else [area]
