@@ -83,8 +83,8 @@ colors = {
 
 # Memory limits: the most hexagons one map will draw
 MAX_MAP_CELLS = 20000            # one town
-MAX_ALL_TOWNS_CELLS = 50000     # "All towns" view
-ALL_TOWNS = "All towns"
+MAX_ALL_TOWNS_CELLS = 50000     # "All municipalities" view
+ALL_TOWNS = "All"
 
 # The same community bounding boxes Kenneth's original script used to build the regional CSV:
 # (lat_min, lat_max, lon_min, lon_max)
@@ -417,9 +417,9 @@ if section == "Coverage map":
     st.header("Coverage map")
 
     st.sidebar.header("Map options")   # optional title for the sidebar
-    dataset = st.sidebar.selectbox("Dataset", ["2026 (all towns)", "Cuba 2025", "Cuba 2022"])
+    dataset = st.sidebar.selectbox("Dataset", ["2026 (all municipalities)", "Cuba 2025", "Cuba 2022"])
 
-    if dataset == "2026 (all towns)":
+    if dataset == "2026 (all municipalities)":
         area = st.sidebar.selectbox("Municipality", [ALL_TOWNS] + list(boundaries))
         map_df = load_csv(str(CURRENT_CSV))
     else:
@@ -434,7 +434,7 @@ if section == "Coverage map":
     mindown, minup = tier_sel
     style = speed_tiers[tier_sel]
 
-    # Draw the cells inside the chosen town's community box (or all four boxes)
+    # Draw the cells inside the chosen municipalities's community box (or all four boxes)
     selected = list(boundaries) if area == ALL_TOWNS else [area]
     cap = MAX_ALL_TOWNS_CELLS if area == ALL_TOWNS else MAX_MAP_CELLS
 
@@ -455,7 +455,7 @@ if section == "Coverage map":
     subset = tier_df[in_area]
 
     if subset.empty:
-        st.warning("No coverage data for this municipality, provider, speed tier, and dataset. (From period before widescale 5G adoption)")
+        st.warning("No coverage data for this municipality, provider, speed tier, and dataset.")
     else:
         total_cells = len(subset)
         if total_cells > cap:
