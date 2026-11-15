@@ -339,7 +339,7 @@ def bar_chart_png():
         loc="lower center", ncol=2, frameon=False, fontsize=10,
     )
 
-    fig.suptitle("Broadband coverage by town, provider, and speed tier", fontsize=14)
+    fig.suptitle("Broadband coverage by municipality, provider, and speed tier", fontsize=14)
     fig.tight_layout(rect=[0, 0.05, 1, 0.96])
     return fig_to_png(fig)
 
