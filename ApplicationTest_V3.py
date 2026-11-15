@@ -80,11 +80,19 @@ colors = {
     "any":    {"35/3": "#333333", "7/1": "#bdbdbd"},   # grays
 }
 
-# Memory limits: the most hexagons one map will draw, and the padding around a town
+# Memory limits: the most hexagons one map will draw
 MAX_MAP_CELLS = 20000            # one town
 MAX_ALL_TOWNS_CELLS = 50000     # "All towns" view
-MAP_PAD_DEG = 0.02
 ALL_TOWNS = "All towns"
+
+# The same community bounding boxes Kenneth's original script used to build the regional CSV:
+# (lat_min, lat_max, lon_min, lon_max)
+COMMUNITY_BOXES = {
+    "Cuba, NM":       (35.95, 36.05, -107.01, -106.9),
+    "Chama, NM":      (36.85, 36.95, -106.6,  -106.5),
+    "Taos, NM":       (36.2,  36.7,  -105.8,  -105.3),
+    "Bloomfield, NM": (36.67, 36.79, -108.03, -107.91),
+}
 
 # The only columns the app ever reads (the CSVs have others, e.g. geometry_wkt, that are big)
 NEEDED_COLS = ["h3_res9_id", "latitude", "longitude", "providerid", "mindown", "minup"]
@@ -162,7 +170,7 @@ def build_map(subset, color, opacity, title, boundaries=boundaries, towns=towns)
     ).add_to(m)
 
     # All hexagons go in ONE GeoJSON layer. That is much lighter than one folium.Polygon
-    # object (each with its own tooltip and styling) per cell.
+    # object per cell.
     features = []
     for h3_index in subset["h3_res9_id"]:
         ring = [[lng, lat] for lat, lng in h3.cell_to_boundary(h3_index)]
@@ -276,7 +284,7 @@ def coverage_trend():
     return pd.DataFrame(rows)
 
 
-# Charts are drawn once, saved as small PNG images, and cached as bytes.
+# Charts are drawn once, saved as small PNG images, and cached.
 # Showing an image is much lighter than keeping live matplotlib figures around.
 
 def fig_to_png(fig):
@@ -393,7 +401,7 @@ def line_chart_png():
     return fig_to_png(fig)
 
 
-# Page layout: only the section you pick is computed, so the app never holds all three at once
+# Page layout: only the section picked is computed, so the app never holds all three at once
 
 section = st.radio(
     "Section",
@@ -423,7 +431,7 @@ if section == "Coverage map":
     mindown, minup = tier_sel
     style = speed_tiers[tier_sel]
 
-    # Only draw the cells around the chosen town(s), not the whole region
+    # Draw the cells inside the chosen town's community box (or all four boxes)
     selected = list(boundaries) if area == ALL_TOWNS else [area]
     cap = MAX_ALL_TOWNS_CELLS if area == ALL_TOWNS else MAX_MAP_CELLS
 
@@ -433,15 +441,13 @@ if section == "Coverage map":
         & (map_df["minup"] == minup)
     ]
 
-    # A cell is kept if it falls in the padded box around ANY selected town
+    # A cell is kept if it falls in the community box of ANY selected town
     in_area = pd.Series(False, index=tier_df.index)
     for name in selected:
-        pts = boundaries[name]
+        lat_lo, lat_hi, lon_lo, lon_hi = COMMUNITY_BOXES[name]
         in_area |= (
-            tier_df["latitude"].between(min(p[0] for p in pts) - MAP_PAD_DEG,
-                                        max(p[0] for p in pts) + MAP_PAD_DEG)
-            & tier_df["longitude"].between(min(p[1] for p in pts) - MAP_PAD_DEG,
-                                           max(p[1] for p in pts) + MAP_PAD_DEG)
+            tier_df["latitude"].between(lat_lo, lat_hi)
+            & tier_df["longitude"].between(lon_lo, lon_hi)
         )
     subset = tier_df[in_area]
 
