@@ -81,8 +81,8 @@ colors = {
 }
 
 # Memory limits: the most hexagons one map will draw, and the padding around a town
-MAX_MAP_CELLS = 8000            # one town
-MAX_ALL_TOWNS_CELLS = 16000     # "All towns" view
+MAX_MAP_CELLS = 20000            # one town
+MAX_ALL_TOWNS_CELLS = 50000     # "All towns" view
 MAP_PAD_DEG = 0.02
 ALL_TOWNS = "All towns"
 
@@ -161,7 +161,7 @@ def build_map(subset, color, opacity, title, boundaries=boundaries, towns=towns)
         name="CARTO Voyager",
     ).add_to(m)
 
-    # All hexagons go in ONE GeoJSON layer. That is far lighter than one folium.Polygon
+    # All hexagons go in ONE GeoJSON layer. That is much lighter than one folium.Polygon
     # object (each with its own tooltip and styling) per cell.
     features = []
     for h3_index in subset["h3_res9_id"]:
@@ -397,7 +397,7 @@ def line_chart_png():
 
 section = st.radio(
     "Section",
-    ["Coverage map", "Coverage by town", "Cuba coverage over time"],
+    ["Coverage map", "Coverage by Municipality", "Cuba coverage over time"],
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -446,7 +446,7 @@ if section == "Coverage map":
     subset = tier_df[in_area]
 
     if subset.empty:
-        st.warning("No coverage data for this town, provider, speed tier, and dataset.")
+        st.warning("No coverage data for this town, provider, speed tier, and dataset. (From period before widescale 5G adoption)")
     else:
         total_cells = len(subset)
         if total_cells > cap:
@@ -464,8 +464,8 @@ if section == "Coverage map":
         st_folium(m, height=600, use_container_width=True, returned_objects=[])
 
 
-elif section == "Coverage by town":
-    st.header("Coverage by town")
+elif section == "Coverage by Municipality":
+    st.header("Coverage by Municipality")
 
     st.image(bar_chart_png(), use_container_width=True)
 
