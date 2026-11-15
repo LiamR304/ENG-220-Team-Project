@@ -431,6 +431,9 @@ if section == "Coverage map":
     tier_sel = st.sidebar.selectbox("Speed tier (down/up Mbps)", list(speed_tiers),
                                     format_func=lambda t: f"{t[0]}/{t[1]}")
 
+    mindown, minup = tier_sel
+    style = speed_tiers[tier_sel]
+
     # Draw the cells inside the chosen town's community box (or all four boxes)
     selected = list(boundaries) if area == ALL_TOWNS else [area]
     cap = MAX_ALL_TOWNS_CELLS if area == ALL_TOWNS else MAX_MAP_CELLS
