@@ -462,7 +462,7 @@ if section == "Coverage map":
             st.info(f"{total_cells:,} cells here. To keep the app fast, the map shows a random "
                     f"sample of {cap:,}. The charts use every cell.")
             subset = subset.sample(cap, random_state=0)
-        where = "across all four towns" if area == ALL_TOWNS else f"near {area}"
+        where = "across all four municipalities" if area == ALL_TOWNS else f"near {area}"
         st.write(f"{total_cells:,} H3 cells (about {total_cells * CELL_KM2:,.1f} km²) with coverage "
                  f"{where}.")
         color = provider_colors[provider][style["shade"]]
@@ -470,7 +470,7 @@ if section == "Coverage map":
         m = build_map(subset, color, style["opacity"], title,
                       boundaries={n: boundaries[n] for n in selected},
                       towns={n: towns[n] for n in selected})
-        st_folium(m, height=600, use_container_width=True, returned_objects=[])
+        st_folium(m, height=700, use_container_width=True, returned_objects=[])
 
 
 elif section == "Coverage by Municipality":
