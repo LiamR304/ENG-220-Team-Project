@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
-
 # Imports
-
 import io
-
 import matplotlib
 matplotlib.use("Agg")   # no GUI backend needed on a server
 
@@ -406,17 +403,8 @@ def line_chart_png():
 
 # ---- Locations without fixed broadband (FCC served/unserved table, pre-summarised per hexagon) ----
 UNSERVED_HEX_CSV = Path("Datasets/unserved_by_hex.csv")
-UNSERVED_COUNTY_CSV = Path("Datasets/unserved_by_county.csv")
+UNSERVED_TOWN_CSV = Path("Datasets/unserved_by_town.csv")
 MAX_UNSERVED_CELLS = 20000
-NM_COUNTIES = {
-    "35001": "Bernalillo", "35003": "Catron", "35005": "Chaves", "35006": "Cibola", "35007": "Colfax",
-    "35009": "Curry", "35011": "De Baca", "35013": "Do\u00f1a Ana", "35015": "Eddy", "35017": "Grant",
-    "35019": "Guadalupe", "35021": "Harding", "35023": "Hidalgo", "35025": "Lea", "35027": "Lincoln",
-    "35028": "Los Alamos", "35029": "Luna", "35031": "McKinley", "35033": "Mora", "35035": "Otero",
-    "35037": "Quay", "35039": "Rio Arriba", "35041": "Roosevelt", "35043": "Sandoval", "35045": "San Juan",
-    "35047": "San Miguel", "35049": "Santa Fe", "35051": "Sierra", "35053": "Socorro", "35055": "Taos",
-    "35057": "Torrance", "35059": "Union", "35061": "Valencia",
-}
 UNSERVED_MEASURES = {
     "No wired or fixed-wireless 100/20": "terrestrial",
     "No wired (cable/fiber/copper) 100/20": "wired",
@@ -432,10 +420,8 @@ def load_unserved_hexes():
 
 
 @st.cache_data
-def load_unserved_counties():
-    d = pd.read_csv(UNSERVED_COUNTY_CSV, dtype={"county_fips": str})
-    d.insert(0, "county", d["county_fips"].map(NM_COUNTIES).fillna(d["county_fips"]))
-    return d.drop(columns="county_fips")
+def load_unserved_towns():
+    return pd.read_csv(UNSERVED_TOWN_CSV)
 
 
 def unserved_color(pct):
@@ -447,7 +433,7 @@ def unserved_color(pct):
 
 def build_unserved_map(cells, key):
     pct_col, n_col = f"pct_unserved_{key}", f"unserved_{key}"
-    m = folium.Map(location=[34.4, -106.1], zoom_start=6, tiles=None)
+    m = folium.Map(tiles=None)
     folium.TileLayer(
         tiles=tiles_url,
         attr="\u00a9 CARTO \u00a9 OpenStreetMap contributors",
@@ -470,6 +456,8 @@ def build_unserved_map(cells, key):
                                   "fillColor": f["properties"]["fill"], "fillOpacity": 0.75},
         tooltip=folium.GeoJsonTooltip(fields=["pct", "detail"], aliases=["Without service", "Locations"]),
     ).add_to(m)
+    m.fit_bounds([[cells["latitude"].min(), cells["longitude"].min()],
+                  [cells["latitude"].max(), cells["longitude"].max()]])
     legend = "".join(
         f'<div><span style="background:{c};display:inline-block;width:14px;height:14px;'
         f'margin-right:6px;vertical-align:middle"></span>{lab}</div>' for _, c, lab in UNSERVED_BINS)
@@ -575,22 +563,27 @@ elif section == "Cuba coverage over time":
 
 
 elif section == "Locations without fixed broadband":
-    st.header("Locations without fixed broadband (New Mexico)")
+    st.header("Locations without fixed broadband")
     st.caption("FCC National Broadband Map, all fixed-broadband serviceable locations (homes and "
-               "businesses together). A location counts as served if a provider reports 100 Mbps "
+               "businesses together) for Cuba, Chama, Taos and Bloomfield. A location counts as served if a provider reports 100 Mbps "
                "down / 20 Mbps up. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
 
     st.sidebar.header("Map options")
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
     key = UNSERVED_MEASURES[measure]
+    towns_all = load_unserved_towns()["town"].tolist()
+    town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
     min_locs = st.sidebar.slider("Minimum locations per hexagon", 1, 20, 3,
                                  help="Hexagons with very few locations give noisy percentages.")
     min_pct = st.sidebar.slider("Only show hexagons with at least this % unserved", 1, 100, 1)
 
     hexes = load_unserved_hexes()
+    if town_sel != "All municipalities":
+        hexes = hexes[hexes["town"] == town_sel]
     cells = hexes[(hexes["total"] >= min_locs) & (hexes[f"pct_unserved_{key}"] >= min_pct)]
     total_un = int(hexes[f"unserved_{key}"].sum())
-    st.write(f"{total_un:,} of {int(hexes['total'].sum()):,} locations statewide "
+    st.write(f"{total_un:,} of {int(hexes['total'].sum()):,} locations "
+             f"{'across the four towns' if town_sel == 'All municipalities' else 'in ' + town_sel} "
              f"({100 * total_un / hexes['total'].sum():.1f}%) lack this service. "
              f"{len(cells):,} hexagons match the filters.")
 
@@ -604,8 +597,8 @@ elif section == "Locations without fixed broadband":
         st_folium(build_unserved_map(cells, key), height=600, use_container_width=True,
                   returned_objects=[])
 
-    with st.expander("Show data table by county"):
-        st.dataframe(load_unserved_counties().sort_values(f"unserved_{key}", ascending=False)[
-            ["county", "total", f"unserved_{key}", f"pct_unserved_{key}"]
+    with st.expander("Show data table by municipality"):
+        st.dataframe(load_unserved_towns().sort_values(f"unserved_{key}", ascending=False)[
+            ["town", "total", f"unserved_{key}", f"pct_unserved_{key}"]
         ].rename(columns={"total": "locations", f"unserved_{key}": "without service",
                           f"pct_unserved_{key}": "% without service"}), hide_index=True)
