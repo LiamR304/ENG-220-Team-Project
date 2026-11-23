@@ -584,6 +584,13 @@ elif section == "Locations without fixed broadband":
     hexes = load_unserved_hexes()
     if town_sel != "All municipalities":
         hexes = hexes[hexes["town"] == town_sel]
+    else:
+        # a hexagon on a town edge can be listed for two towns; merge so it is drawn once
+        sums = [c for c in hexes.columns if c == "total" or c.startswith("unserved_")]
+        hexes = hexes.groupby("h3_res8_id", as_index=False).agg(
+            {**{c: "sum" for c in sums}, "latitude": "first", "longitude": "first"})
+        for k in UNSERVED_MEASURES.values():
+            hexes[f"pct_unserved_{k}"] = (100 * hexes[f"unserved_{k}"] / hexes["total"]).round(1)
     cells = hexes[(hexes["total"] >= min_locs) & (hexes[f"pct_unserved_{key}"] >= min_pct)]
     total_un = int(hexes[f"unserved_{key}"].sum())
     st.write(f"{total_un:,} of {int(hexes['total'].sum()):,} locations "
@@ -611,10 +618,10 @@ elif section == "Locations without fixed broadband":
 elif section == "About & resources":
     st.header("About this dashboard")
     st.write(
-        "This dashboard compares 5G and fixed broadband coverage in four northern New Mexico "
+        "This dashboard compares 5G and fixed broadband coverage in four New Mexico "
         "communities: Cuba, Chama, Taos and Bloomfield. It was built for ENG 220 (Peace "
         "Engineering) to show where service is strong, where it is thin, and how Cuba "
-        "compares with its neighbors. We hope that the residents of Cuba, NM may find it of some use."
+        "compares with its neighbors. We hope in particular that the residents of Cuba, NM may find it of some use."
     )
     st.subheader("What the sections show")
     st.markdown(
@@ -629,17 +636,17 @@ elif section == "About & resources":
         "All figures come from the FCC National Broadband Map. Providers report their own "
         "coverage, so a place shown as covered may still have weak or no service in practice."
     )
-    st.subheader("Project Limitations:")
+    st.subheader("Project Limitations")
     st.markdown(
         "- Coverage is self-reported by providers and is not a measured speed test.\n"
         "- The fixed-broadband map counts homes and businesses together, so it cannot show "
         "businesses on their own.\n"
-        "- Hexagon percentages are noisy where a hexagon has only a few locations; The "
-        "minimum-locations slider is included to mitigate this.\n"
-        "- The fixed-broadband section uses the FCC data release for June 2026 (latest data available)."
+        "- Hexagon percentages are noisy where a hexagon has only a few locations; use the "
+        "minimum-locations slider.\n"
+        "- The fixed-broadband section uses the FCC data release for June 2026 (downloaded November 2026)."
     )
 
-    st.header("Resources for Residents")
+    st.header("Resources for residents")
     st.markdown(
         "**Check or correct your address**\n"
         "- [FCC National Broadband Map](https://broadbandmap.fcc.gov): look up the providers "
@@ -657,3 +664,4 @@ elif section == "About & resources":
         "- [Digital needs in New Mexico](https://connect.nm.gov/digital-needs.html): state "
         "information on digital needs and how communities can take part."
     )
+    st.caption("Programs and eligibility change, so check each site for current details.")
