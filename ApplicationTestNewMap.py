@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
+
 # Imports
+
 import io
+
 import matplotlib
 matplotlib.use("Agg")   # no GUI backend needed on a server
 
@@ -462,8 +465,9 @@ def build_unserved_map(cells, key):
         f'<div><span style="background:{c};display:inline-block;width:14px;height:14px;'
         f'margin-right:6px;vertical-align:middle"></span>{lab}</div>' for _, c, lab in UNSERVED_BINS)
     m.get_root().html.add_child(folium.Element(
-        '<div style="position:fixed;bottom:30px;left:10px;z-index:9999;background:white;'
-        'padding:8px 10px;border:1px solid #999;border-radius:4px;font-size:12px">'
+        '<div style="position:fixed;bottom:30px;left:10px;z-index:9999;background:#ffffff;'
+        'padding:8px 10px;border:1px solid #999;border-radius:4px;font-size:13px;'
+        'color:#111;line-height:1.5">'
         f'<b>% of locations in hexagon<br>without service</b>{legend}</div>'))
     return m
 
@@ -472,7 +476,7 @@ def build_unserved_map(cells, key):
 
 section = st.radio(
     "Section",
-    ["Coverage map", "Coverage by Municipality", "Cuba coverage over time", "Locations without fixed broadband"],
+    ["Coverage map", "Coverage by Municipality", "Cuba coverage over time", "Locations without fixed broadband", "About & resources"],
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -602,3 +606,54 @@ elif section == "Locations without fixed broadband":
             ["town", "total", f"unserved_{key}", f"pct_unserved_{key}"]
         ].rename(columns={"total": "locations", f"unserved_{key}": "without service",
                           f"pct_unserved_{key}": "% without service"}), hide_index=True)
+
+
+elif section == "About & resources":
+    st.header("About this dashboard")
+    st.write(
+        "This dashboard compares 5G and fixed broadband coverage in four northern New Mexico "
+        "communities: Cuba, Chama, Taos and Bloomfield. It was built for ENG 220 (Peace "
+        "Engineering) to show where service is strong, where it is thin, and how Cuba "
+        "compares with its neighbors. We hope that the residents of Cuba, NM may find it of some use."
+    )
+    st.subheader("What the sections show")
+    st.markdown(
+        "- **Coverage map:** where each provider reports 5G coverage, by speed tier, as H3 hexagons.\n"
+        "- **Coverage by Municipality:** the share of each town's area covered, by provider and speed tier.\n"
+        "- **Cuba coverage over time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
+        "- **Locations without fixed broadband:** the share of homes and businesses in each "
+        "hexagon that no provider reports serving at 100 Mbps down / 20 Mbps up."
+    )
+    st.subheader("Where the data comes from")
+    st.write(
+        "All figures come from the FCC National Broadband Map. Providers report their own "
+        "coverage, so a place shown as covered may still have weak or no service in practice."
+    )
+    st.subheader("Project Limitations:")
+    st.markdown(
+        "- Coverage is self-reported by providers and is not a measured speed test.\n"
+        "- The fixed-broadband map counts homes and businesses together, so it cannot show "
+        "businesses on their own.\n"
+        "- Hexagon percentages are noisy where a hexagon has only a few locations; The "
+        "minimum-locations slider is included to mitigate this.\n"
+        "- The fixed-broadband section uses the FCC data release for June 2026 (latest data available)."
+    )
+
+    st.header("Resources for Residents")
+    st.markdown(
+        "**Check or correct your address**\n"
+        "- [FCC National Broadband Map](https://broadbandmap.fcc.gov): look up the providers "
+        "reported at your address.\n"
+        "- [How to submit a location challenge](https://help.bdc.fcc.gov/hc/en-us/articles/10475216120475-How-to-Submit-a-Location-Challenge): "
+        "if your home or business is missing or listed wrongly.\n"
+        "- [How to file an availability challenge](https://help.bdc.fcc.gov/hc/en-us/articles/10476040597787-How-to-File-an-Availability-Challenge): "
+        "if a provider is listed but does not actually serve you.\n\n"
+        "**Help paying for service**\n"
+        "- [FCC Lifeline program](https://www.fcc.gov/lifeline-consumer): a monthly discount on "
+        "phone or internet service for eligible low-income households.\n\n"
+        "**New Mexico programs**\n"
+        "- [Connect New Mexico](https://connect.nm.gov/digital-opportunity-resources.html): the state "
+        "Office of Broadband Access and Expansion, with digital-opportunity resources.\n"
+        "- [Digital needs in New Mexico](https://connect.nm.gov/digital-needs.html): state "
+        "information on digital needs and how communities can take part."
+    )
