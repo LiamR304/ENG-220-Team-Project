@@ -434,8 +434,21 @@ def unserved_color(pct):
     return UNSERVED_BINS[-1][1]
 
 
-def build_unserved_map(cells, key):
+SERVED_BINS = [(0, "#f2f2f2", "0%"), (20, "#cfe6fa", "0-20%"), (40, "#99c9f5", "20-40%"),
+               (60, "#66b0f2", "40-60%"), (80, "#5b9ddc", "60-80%"), (100.1, "#4f7bbf", "80-100%")]
+
+
+def bin_color(value, bins):
+    for upper, color, _ in bins:
+        if value <= upper:
+            return color
+    return bins[-1][1]
+
+
+def build_unserved_map(cells, key, mode="unserved"):
     pct_col, n_col = f"pct_unserved_{key}", f"unserved_{key}"
+    served = mode == "served"
+    bins = SERVED_BINS if served else UNSERVED_BINS
     m = folium.Map(tiles=None)
     folium.TileLayer(
         tiles=tiles_url,
@@ -448,8 +461,9 @@ def build_unserved_map(cells, key):
         ring.append(ring[0])
         features.append({
             "type": "Feature",
-            "properties": {"pct": f"{pct:.0f}%", "detail": f"{int(n_un)} of {int(tot)} locations",
-                           "fill": unserved_color(pct)},
+            "properties": {"h3": h, "pct": f"{(100 - pct) if served else pct:.0f}%",
+                           "detail": f"{int(n_un)} of {int(tot)} locations without service",
+                           "fill": bin_color((100 - pct) if served else pct, bins)},
             "geometry": {"type": "Polygon", "coordinates": [ring]},
         })
     folium.GeoJson(
@@ -457,26 +471,68 @@ def build_unserved_map(cells, key):
         name="Locations without service",
         style_function=lambda f: {"color": f["properties"]["fill"], "weight": 0.5,
                                   "fillColor": f["properties"]["fill"], "fillOpacity": 0.75},
-        tooltip=folium.GeoJsonTooltip(fields=["pct", "detail"], aliases=["Without service", "Locations"]),
+        tooltip=folium.GeoJsonTooltip(fields=["pct", "detail", "h3"],
+                                      aliases=["Served" if served else "Without service", "Locations", "H3 hexagon"]),
     ).add_to(m)
     m.fit_bounds([[cells["latitude"].min(), cells["longitude"].min()],
                   [cells["latitude"].max(), cells["longitude"].max()]])
     legend = "".join(
         f'<div><span style="background:{c};display:inline-block;width:14px;height:14px;'
-        f'margin-right:6px;vertical-align:middle"></span>{lab}</div>' for _, c, lab in UNSERVED_BINS)
+        f'margin-right:6px;vertical-align:middle"></span>{lab}</div>' for _, c, lab in bins)
     m.get_root().html.add_child(folium.Element(
         '<div style="position:fixed;bottom:30px;left:10px;z-index:9999;background:#ffffff;'
         'padding:8px 10px;border:1px solid #999;border-radius:4px;font-size:13px;'
         'color:#111;line-height:1.5">'
-        f'<b>% of locations in hexagon<br>without service</b>{legend}</div>'))
+        f'<b>% of locations in hexagon<br>{"served" if served else "without service"}</b>{legend}</div>'))
     return m
+
+
+# ---- Homes vs businesses (FCC place summary: share of units served, by town) ----
+FIXED_SUMMARY_CSV = Path("Datasets/fixed_summary_by_town.csv")
+TECH_CHOICES = {
+    "Wired + fixed wireless, incl. unlicensed (same as the map above)": "Any Terrestrial",
+    "Wired + licensed fixed wireless (FCC map default)": "All Wired and Licensed Fixed Wireless",
+    "Wired only (cable, fiber, copper)": "All Wired",
+}
+
+
+@st.cache_data
+def load_fixed_summary():
+    return pd.read_csv(FIXED_SUMMARY_CSV)
+
+
+@st.cache_data(show_spinner="Drawing chart...")
+def homes_vs_business_png(tech):
+    d = load_fixed_summary()
+    d = d[d["technology"] == tech]
+    town_order = [t for t in boundaries if t in set(d["town"])]
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.8), sharey=True)
+    x = np.arange(len(town_order))
+    width = 0.38
+    for ax, (col, label) in zip(axes, [("served_25_3", "25/3 Mbps"), ("served_100_20", "100/20 Mbps")]):
+        for i, (kind, name, color) in enumerate([("R", "Homes", "#4c78a8"), ("B", "Businesses", "#f58518")]):
+            vals = [100 - d[(d["town"] == t) & (d["biz_res"] == kind)][col].iloc[0] for t in town_order]
+            bars = ax.bar(x + (i - 0.5) * width, vals, width, color=color, edgecolor="black",
+                          linewidth=0.5, label=name)
+            ax.bar_label(bars, fmt="%.0f%%", fontsize=8, padding=2)
+        ax.set_title(f"Without {label} service", fontsize=12, fontweight="bold")
+        ax.set_xticks(x)
+        ax.set_xticklabels([t.replace(", NM", "") for t in town_order])
+        ax.set_ylim(0, 105)
+        ax.grid(axis="y", linestyle=":", alpha=0.5)
+        ax.set_axisbelow(True)
+    axes[0].set_ylabel("% of units without service")
+    axes[1].legend(loc="upper right", frameon=False)
+    fig.suptitle("Homes vs businesses: share of units without fixed broadband", fontsize=14)
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    return fig_to_png(fig)
 
 
 # Page layout: only the section picked is computed, so the app never holds all three at once
 
 section = st.radio(
     "Section",
-    ["Coverage map", "Coverage by Municipality", "Cuba coverage over time", "Locations without fixed broadband", "About & resources"],
+    ["Coverage map", "Coverage by Municipality", "Cuba coverage over time", "Locations without fixed broadband", "Homes vs businesses", "About & resources"],
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -575,6 +631,9 @@ elif section == "Locations without fixed broadband":
     st.sidebar.header("Map options")
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
     key = UNSERVED_MEASURES[measure]
+    mode = "served" if st.sidebar.radio(
+        "Color hexagons by", ["% without service", "% served (blue, like the FCC map)"]
+    ).startswith("% served") else "unserved"
     towns_all = load_unserved_towns()["town"].tolist()
     town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
     min_locs = st.sidebar.slider("Minimum locations per hexagon", 1, 20, 1,
@@ -605,7 +664,7 @@ elif section == "Locations without fixed broadband":
             st.info(f"To keep the app fast, the map shows the {MAX_UNSERVED_CELLS:,} hexagons "
                     f"with the most locations without service.")
             cells = cells.nlargest(MAX_UNSERVED_CELLS, f"unserved_{key}")
-        st_folium(build_unserved_map(cells, key), height=600, use_container_width=True,
+        st_folium(build_unserved_map(cells, key, mode), height=600, use_container_width=True,
                   returned_objects=[])
 
     with st.expander("Show data table by municipality"):
@@ -615,23 +674,42 @@ elif section == "Locations without fixed broadband":
                           f"pct_unserved_{key}": "% without service"}), hide_index=True)
 
 
+elif section == "Homes vs Businesses":
+    st.header("Homes vs Businesses")
+    st.caption("From the FCC place summary (June 2026 release). Shows the share of homes and of "
+               "businesses in each town that have no fixed broadband at the speed shown. Below "
+               "25/3 Mbps is generally treated as unserved; below 100/20 as underserved or unserved.")
+    tech_label = st.selectbox("Service type", list(TECH_CHOICES))
+    tech = TECH_CHOICES[tech_label]
+    st.image(homes_vs_business_png(tech), use_container_width=True)
+
+    with st.expander("Show data table (% of units served)"):
+        t = load_fixed_summary()
+        t = t[t["technology"] == tech].copy()
+        t["type"] = t["biz_res"].map({"R": "Homes", "B": "Businesses"})
+        st.dataframe(t[["town", "type", "total_units", "served_25_3", "served_100_20"]].rename(columns={
+            "total_units": "units in town (homes + businesses)", "served_25_3": "% served 25/3",
+            "served_100_20": "% served 100/20"}), hide_index=True)
+
+
 elif section == "About & resources":
-    st.header("About this dashboard")
+    st.header("About This Dashboard")
     st.write(
         "This dashboard compares 5G and fixed broadband coverage in four New Mexico "
         "communities: Cuba, Chama, Taos and Bloomfield. It was built for ENG 220 (Peace "
         "Engineering) to show where service is strong, where it is thin, and how Cuba "
         "compares with its neighbors. We hope in particular that the residents of Cuba, NM may find it of some use."
     )
-    st.subheader("What the sections show")
+    st.subheader("What the Sections Show")
     st.markdown(
         "- **Coverage map:** where each provider reports 5G coverage, by speed tier, as H3 hexagons.\n"
         "- **Coverage by Municipality:** the share of each town's area covered, by provider and speed tier.\n"
         "- **Cuba coverage over time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
         "- **Locations without fixed broadband:** the share of homes and businesses in each "
-        "hexagon that no provider reports serving at 100 Mbps down / 20 Mbps up."
+        "hexagon that no provider reports serving at 100 Mbps down / 20 Mbps up, or the share served.\n"
+        "- **Homes vs businesses:** for each town, how service for homes compares with service for businesses."
     )
-    st.subheader("Where the data comes from")
+    st.subheader("Where the Data Comes From")
     st.write(
         "All figures come from the FCC National Broadband Map. Providers report their own "
         "coverage, so a place shown as covered may still have weak or no service in practice."
@@ -646,7 +724,7 @@ elif section == "About & resources":
         "- The fixed-broadband section uses the FCC data release for June 2026 (downloaded November 2026)."
     )
 
-    st.header("Resources for residents")
+    st.header("Resources for Residents")
     st.markdown(
         "**Check or correct your address**\n"
         "- [FCC National Broadband Map](https://broadbandmap.fcc.gov): look up the providers "
@@ -664,4 +742,3 @@ elif section == "About & resources":
         "- [Digital needs in New Mexico](https://connect.nm.gov/digital-needs.html): state "
         "information on digital needs and how communities can take part."
     )
-    st.caption("Programs and eligibility change, so check each site for current details.")
