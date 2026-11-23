@@ -413,7 +413,7 @@ UNSERVED_MEASURES = {
     "No wired (cable/fiber/copper) 100/20": "wired",
 }
 # (upper bound %, colour, label)
-UNSERVED_BINS = [(25, "#fdd0a2", "1-25%"), (50, "#fdae6b", "26-50%"),
+UNSERVED_BINS = [(0, "#c7e9c0", "0% (all served)"), (25, "#fdd0a2", ">0-25%"), (50, "#fdae6b", "26-50%"),
                  (75, "#e6550d", "51-75%"), (100.1, "#a63603", "76-100%")]
 
 
@@ -577,9 +577,9 @@ elif section == "Locations without fixed broadband":
     key = UNSERVED_MEASURES[measure]
     towns_all = load_unserved_towns()["town"].tolist()
     town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
-    min_locs = st.sidebar.slider("Minimum locations per hexagon", 1, 20, 3,
+    min_locs = st.sidebar.slider("Minimum locations per hexagon", 1, 20, 1,
                                  help="Hexagons with very few locations give noisy percentages.")
-    min_pct = st.sidebar.slider("Only show hexagons with at least this % unserved", 1, 100, 1)
+    min_pct = st.sidebar.slider("Only show hexagons with at least this % unserved", 0, 100, 0)
 
     hexes = load_unserved_hexes()
     if town_sel != "All municipalities":
