@@ -20,8 +20,8 @@ import streamlit as st
 from streamlit_folium import st_folium
 
 st.set_page_config(page_title="NM Broadband Coverage", layout="wide")
-st.title("New Mexico 5G Broadband Coverage")
-st.write("These maps and charts compare 5G broadband coverage in Cuba, NM and three other "
+st.title("Cuba, New Mexico Broadband Coverage")
+st.write("These maps and charts compare broadband coverage focusing on the availability of 5G mobile broadband and fixed broadband (\u2265 100/20 Mbps) in Cuba, NM and three other "
          "small New Mexico municipalities.")
 st.divider()
 # Data paths and constants:
@@ -532,7 +532,7 @@ def homes_vs_business_png(tech):
 
 section = st.radio(
     "Section",
-    ["Coverage map", "Coverage by Municipality", "Cuba coverage over time", "Locations without fixed broadband", "Homes vs businesses", "About & resources"],
+    ["About & resources", "Coverage map", "Coverage by Municipality", "Cuba coverage over time", "Locations without fixed broadband", "Homes vs businesses"],
     horizontal=True,
     label_visibility="collapsed",
 )
