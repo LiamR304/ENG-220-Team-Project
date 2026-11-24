@@ -21,7 +21,7 @@ from streamlit_folium import st_folium
 st.set_page_config(page_title="NM Broadband Coverage", layout="wide")
 st.title("Cuba, New Mexico Broadband Coverage")
 st.write("These maps and charts compare broadband coverage focusing on the availability of 5G mobile broadband and fixed broadband (\u2265 100/20 Mbps) in Cuba, NM and three other "
-         "small New Mexico municipalities.")
+         "small New Mexico municipalities. Click any of the buttons down below to see the data and maps.")
 st.divider()
 # Data paths and constants:
 
@@ -557,7 +557,9 @@ if section == "About & Resources":
         "provider says it offers service to at a location, not the type of building.\n"
         "- Hexagon percentages are noisy where a hexagon has only a few locations; use the "
         "minimum-locations slider.\n"
+        "-Exact number of locations/units per hexagon is likely not exact.\n"
         "- The fixed-broadband section uses the FCC data release for June 2026 (last updated November 10, 2026)."
+        
     )
 
     st.header("Resources for Residents")
