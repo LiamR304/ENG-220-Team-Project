@@ -682,7 +682,7 @@ elif section == "Locations Without Fixed Broadband":
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
     key = UNSERVED_MEASURES[measure]
     mode = "served" if st.sidebar.radio(
-        "Color hexagons by", ["% without service", "% served (blue, like the FCC map)"]
+        "Color hexagons by", ["% without service", "% served"]
     ).startswith("% served") else "unserved"
     towns_all = load_unserved_towns()["town"].tolist()
     town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
