@@ -530,7 +530,7 @@ def homes_vs_business_png(tech):
 
 section = st.radio(
     "Section",
-    ["About & s", "Coverage Map", "Coverage by Municipality", "Cuba Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
+    ["About & Resources", "Coverage Map", "Coverage by Municipality", "Cuba Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
     horizontal=True,
     label_visibility="collapsed",
 )
