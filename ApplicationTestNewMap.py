@@ -488,8 +488,8 @@ def build_unserved_map(cells, key, mode="unserved"):
 # ---- Homes vs businesses (FCC place summary: share of units served, by town) ----
 FIXED_SUMMARY_CSV = Path("Datasets/fixed_summary_by_town.csv")
 TECH_CHOICES = {
-    "Wired + fixed wireless, incl. unlicensed (same as the map above)": "Any Terrestrial",
-    "Wired + licensed fixed wireless (FCC map default)": "All Wired and Licensed Fixed Wireless",
+    "Wired + fixed wireless, incl. unlicensed": "Any Terrestrial",
+    "Wired + licensed fixed wireless": "All Wired and Licensed Fixed Wireless",
     "Wired only (cable, fiber, copper)": "All Wired",
 }
 
@@ -565,7 +565,7 @@ if section == "About & Resources":
         "businesses on their own.\n"
         "- Hexagon percentages are noisy where a hexagon has only a few locations; use the "
         "minimum-locations slider.\n"
-        "- The fixed-broadband section uses the FCC data release for June 2026 (last updated November 2026)."
+        "- The fixed-broadband section uses the FCC data release for June 2026 (last updated November 10, 2026)."
     )
 
     st.header("Resources for Residents")
