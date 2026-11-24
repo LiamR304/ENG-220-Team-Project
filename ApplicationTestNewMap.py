@@ -538,7 +538,7 @@ section = st.radio(
 )
 
 
-if section == "About & resources":
+if section == "About & Resources":
     st.header("About This Dashboard")
     st.write(
         "This dashboard compares 5G and fixed broadband coverage in four New Mexico "
@@ -680,7 +680,7 @@ elif section == "Locations Without Fixed Broadband":
                "businesses together) for Cuba, Chama, Taos and Bloomfield. A location counts as served if a provider reports 100 Mbps "
                "down / 20 Mbps up. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
 
-    st.sidebar.header("Map options")
+    st.sidebar.header("Map Options")
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
     key = UNSERVED_MEASURES[measure]
     mode = "served" if st.sidebar.radio(
