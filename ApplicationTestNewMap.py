@@ -530,7 +530,7 @@ def homes_vs_business_png(tech):
 
 section = st.radio(
     "Section",
-    ["About & Resources", "Coverage Map", "Coverage by Municipality", "Cuba Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
+    ["About & Resources", "5G Mobile Broadband Coverage", "5G Broadband Coverage by Municipality", "Cuba 5G Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -546,9 +546,9 @@ if section == "About & Resources":
     )
     st.subheader("What the Sections Show")
     st.markdown(
-        "- **Coverage map:** where each provider reports 5G coverage, by speed tier, as H3 hexagons.\n"
-        "- **Coverage by Municipality:** the share of each town's area covered, by provider and speed tier.\n"
-        "- **Cuba coverage over time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
+        "- **5G Mobile Broadband Coverage map:** where each provider reports 5G coverage, by speed tier, as H3 hexagons.\n"
+        "- **5G Broadband Coverage by Municipality:** the share of each town's area covered, by provider and speed tier.\n"
+        "- **Cuba 5G coverage over time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
         "- **Locations without fixed broadband:** the share of homes and businesses in each "
         "hexagon that no provider reports serving at 100 Mbps down / 20 Mbps up, or the share served.\n"
         "- **Homes vs businesses:** for each town, how service for homes compares with service for businesses."
@@ -588,8 +588,8 @@ if section == "About & Resources":
     )
 
 
-elif section == "Coverage Map":
-    st.header("Coverage Map")
+elif section == "5G Mobile Broadband Coverage Map":
+    st.header("5G Mobile Broadband Coverage Map")
 
     st.sidebar.header("Map Options")   # optional title for the sidebar
     dataset = st.sidebar.selectbox("Dataset", ["2026 (all municipalities)", "Cuba 2025", "Cuba 2022"])
@@ -648,8 +648,8 @@ elif section == "Coverage Map":
         st_folium(m, height=600, use_container_width=True, returned_objects=[])
 
 
-elif section == "Coverage by Municipality":
-    st.header("Coverage by Municipality")
+elif section == "5G Broadband Coverage by Municipality":
+    st.header("5G Broadband Coverage by Municipality")
 
     st.image(bar_chart_png(), use_container_width=True)
 
@@ -661,8 +661,8 @@ elif section == "Coverage by Municipality":
         ))
 
 
-elif section == "Cuba Coverage Over Time":
-    st.header("Cuba Coverage Over Time")
+elif section == "Cuba 5GCoverage Over Time":
+    st.header("Cuba 5G Coverage Over Time")
 
     st.image(line_chart_png(), use_container_width=True)
 
