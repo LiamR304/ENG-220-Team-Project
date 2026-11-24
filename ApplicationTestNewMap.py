@@ -100,7 +100,7 @@ NEEDED_COLS = ["h3_res9_id", "latitude", "longitude", "providerid", "mindown", "
 # Cached loaders (Streamlit reruns the whole script on every click, so these keep it fast)
 # cache_ hands back the same object each time; cache_data would copy it on every call.
 
-@st.cache_(max_entries=2)
+@st.cache_resource(max_entries=2)
 def load_csv(path_str):
     # usecols skips the unused columns while reading, so they never take up memory
     d = pd.read_csv(path_str, usecols=lambda c: c.strip() in NEEDED_COLS)
