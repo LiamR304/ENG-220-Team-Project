@@ -583,17 +583,17 @@ if section == "About & resources":
         "- [FCC Lifeline program](https://www.fcc.gov/lifeline-consumer): a monthly discount on "
         "phone or internet service for eligible low-income households.\n\n"
         "**New Mexico programs**\n"
-        "- [Connect New Mexico](https://connect.nm.gov/digital-opportunity-resources.html): the state "
+        "- [Connect New Mexico](https://connect.nm.gov/digital-opportunity.html): the state "
         "Office of Broadband Access and Expansion, with digital-opportunity resources.\n"
         "- [Digital needs in New Mexico](https://connect.nm.gov/digital-needs.html): state "
         "information on digital needs and how communities can take part."
     )
 
 
-elif section == "Coverage map":
-    st.header("Coverage map")
+elif section == "Coverage Map":
+    st.header("Coverage Map")
 
-    st.sidebar.header("Map options")   # optional title for the sidebar
+    st.sidebar.header("Map Options")   # optional title for the sidebar
     dataset = st.sidebar.selectbox("Dataset", ["2026 (all municipalities)", "Cuba 2025", "Cuba 2022"])
 
     if dataset == "2026 (all municipalities)":
@@ -663,8 +663,8 @@ elif section == "Coverage by Municipality":
         ))
 
 
-elif section == "Cuba coverage over time":
-    st.header("Cuba coverage over time")
+elif section == "Cuba Coverage Over Time":
+    st.header("Cuba Coverage Over Time")
 
     st.image(line_chart_png(), use_container_width=True)
 
@@ -674,8 +674,8 @@ elif section == "Cuba coverage over time":
         )[["2022", "2025", "2026"]])
 
 
-elif section == "Locations without fixed broadband":
-    st.header("Locations without fixed broadband")
+elif section == "Locations Without Fixed Broadband":
+    st.header("Locations Without Fixed Broadband")
     st.caption("FCC National Broadband Map, all fixed-broadband serviceable locations (homes and "
                "businesses together) for Cuba, Chama, Taos and Bloomfield. A location counts as served if a provider reports 100 Mbps "
                "down / 20 Mbps up. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
