@@ -97,7 +97,6 @@ COMMUNITY_BOXES = {
 
 # The only columns the app ever reads (the CSVs have others, e.g. geometry_wkt, that are big)
 NEEDED_COLS = ["h3_res9_id", "latitude", "longitude", "providerid", "mindown", "minup"]
-re
 # Cached loaders (Streamlit reruns the whole script on every click, so these keep it fast)
 # cache_resource hands back the same object each time; cache_data would copy it on every call.
 
