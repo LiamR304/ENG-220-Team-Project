@@ -4,7 +4,6 @@
 # Imports
 
 import io
-
 import matplotlib
 matplotlib.use("Agg")   # no GUI backend needed on a server
 
@@ -438,21 +437,8 @@ def unserved_color(pct):
     return UNSERVED_BINS[-1][1]
 
 
-SERVED_BINS = [(0, "#f2f2f2", "0%"), (20, "#cfe6fa", "0-20%"), (40, "#99c9f5", "20-40%"),
-               (60, "#66b0f2", "40-60%"), (80, "#5b9ddc", "60-80%"), (100.1, "#4f7bbf", "80-100%")]
-
-
-def bin_color(value, bins):
-    for upper, color, _ in bins:
-        if value <= upper:
-            return color
-    return bins[-1][1]
-
-
-def build_unserved_map(cells, key, mode="unserved"):
+def build_unserved_map(cells, key):
     pct_col, n_col = f"pct_unserved_{key}", f"unserved_{key}"
-    served = mode == "served"
-    bins = SERVED_BINS if served else UNSERVED_BINS
     m = folium.Map(tiles=None)
     folium.TileLayer(
         tiles=tiles_url,
@@ -465,9 +451,9 @@ def build_unserved_map(cells, key, mode="unserved"):
         ring.append(ring[0])
         features.append({
             "type": "Feature",
-            "properties": {"h3": h, "pct": f"{(100 - pct) if served else pct:.0f}%",
+            "properties": {"h3": h, "pct": f"{pct:.0f}%",
                            "detail": f"{int(n_un)} of {int(tot)} locations without service",
-                           "fill": bin_color((100 - pct) if served else pct, bins)},
+                           "fill": unserved_color(pct)},
             "geometry": {"type": "Polygon", "coordinates": [ring]},
         })
     folium.GeoJson(
@@ -476,18 +462,18 @@ def build_unserved_map(cells, key, mode="unserved"):
         style_function=lambda f: {"color": f["properties"]["fill"], "weight": 0.5,
                                   "fillColor": f["properties"]["fill"], "fillOpacity": 0.75},
         tooltip=folium.GeoJsonTooltip(fields=["pct", "detail", "h3"],
-                                      aliases=["Served" if served else "Without service", "Locations", "H3 hexagon"]),
+                                      aliases=["Without service", "Locations", "H3 hexagon"]),
     ).add_to(m)
     m.fit_bounds([[cells["latitude"].min(), cells["longitude"].min()],
                   [cells["latitude"].max(), cells["longitude"].max()]])
     legend = "".join(
         f'<div><span style="background:{c};display:inline-block;width:14px;height:14px;'
-        f'margin-right:6px;vertical-align:middle"></span>{lab}</div>' for _, c, lab in bins)
+        f'margin-right:6px;vertical-align:middle"></span>{lab}</div>' for _, c, lab in UNSERVED_BINS)
     m.get_root().html.add_child(folium.Element(
         '<div style="position:fixed;bottom:30px;left:10px;z-index:9999;background:#ffffff;'
         'padding:8px 10px;border:1px solid #999;border-radius:4px;font-size:13px;'
         'color:#111;line-height:1.5">'
-        f'<b>% of locations in hexagon<br>{"served" if served else "without service"}</b>{legend}</div>'))
+        f'<b>% of locations in hexagon<br>without service</b>{legend}</div>'))
     return m
 
 
@@ -689,9 +675,6 @@ elif section == "Locations Without Fixed Broadband":
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
     kind_label = st.sidebar.selectbox("Service offered to", list(SERVICE_KINDS))
     key = f"{UNSERVED_MEASURES[measure]}_{SERVICE_KINDS[kind_label]}"
-    mode = "served" if st.sidebar.radio(
-        "Color hexagons by", ["% without service"]
-    ).startswith("% served") else "unserved"
     towns_all = load_unserved_towns()["town"].tolist()
     town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
     min_locs = st.sidebar.slider("Minimum locations per hexagon", 1, 20, 1,
@@ -722,7 +705,7 @@ elif section == "Locations Without Fixed Broadband":
             st.info(f"To keep the app fast, the map shows the {MAX_UNSERVED_CELLS:,} hexagons "
                     f"with the most locations without service.")
             cells = cells.nlargest(MAX_UNSERVED_CELLS, f"unserved_{key}")
-        st_folium(build_unserved_map(cells, key, mode), height=600, use_container_width=True,
+        st_folium(build_unserved_map(cells, key), height=600, use_container_width=True,
                   returned_objects=[])
 
     with st.expander("Show data table by municipality"):
