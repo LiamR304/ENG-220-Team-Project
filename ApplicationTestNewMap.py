@@ -407,7 +407,7 @@ UNSERVED_HEX_CSV = Path("Datasets/unserved_by_hex.csv")
 UNSERVED_TOWN_CSV = Path("Datasets/unserved_by_town.csv")
 MAX_UNSERVED_CELLS = 20000
 UNSERVED_MEASURES = {
-    "Wired + licensed fixed wireless (FCC map default)": "wiredlfw",
+    "Wired + licensed fixed wireless": "wiredlfw",
     "All terrestrial (wired + all fixed wireless)": "terrestrial",
     "Wired only (cable, fiber, copper)": "wired",
 }
@@ -561,7 +561,7 @@ if section == "About & Resources":
     )
     st.subheader("Where the Data Comes From")
     st.write(
-        "All figures come from the FCC National Broadband Map. Providers report their own "
+        "All figures come from the FCC. Providers report their own "
         "coverage, so a place shown as covered may still have weak or no service in practice."
     )
     st.subheader("Project Limitations")
@@ -680,7 +680,7 @@ elif section == "Cuba 5G Coverage Over Time":
 
 elif section == "Locations Without Fixed Broadband":
     st.header("Locations Without Fixed Broadband")
-    st.caption("FCC National Broadband Map, all fixed-broadband serviceable locations for Cuba, "
+    st.caption("All fixed-broadband serviceable locations for Cuba, "
                "Chama, Taos and Bloomfield. A location counts as served if a provider reports 100 Mbps "
                "down / 20 Mbps up of the chosen type, offered to residential customers, business "
                "customers, or either. Percentages are out of all locations in the hexagon. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
@@ -690,7 +690,7 @@ elif section == "Locations Without Fixed Broadband":
     kind_label = st.sidebar.selectbox("Service offered to", list(SERVICE_KINDS))
     key = f"{UNSERVED_MEASURES[measure]}_{SERVICE_KINDS[kind_label]}"
     mode = "served" if st.sidebar.radio(
-        "Color hexagons by", ["% without service", "% served (blue, like the FCC map)"]
+        "Color hexagons by", ["% without service"]
     ).startswith("% served") else "unserved"
     towns_all = load_unserved_towns()["town"].tolist()
     town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
