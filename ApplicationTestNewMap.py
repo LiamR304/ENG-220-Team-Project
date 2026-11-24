@@ -98,9 +98,9 @@ COMMUNITY_BOXES = {
 # The only columns the app ever reads (the CSVs have others, e.g. geometry_wkt, that are big)
 NEEDED_COLS = ["h3_res9_id", "latitude", "longitude", "providerid", "mindown", "minup"]
 # Cached loaders (Streamlit reruns the whole script on every click, so these keep it fast)
-# cache_resource hands back the same object each time; cache_data would copy it on every call.
+# cache_ hands back the same object each time; cache_data would copy it on every call.
 
-@st.cache_resource(max_entries=2)
+@st.cache_(max_entries=2)
 def load_csv(path_str):
     # usecols skips the unused columns while reading, so they never take up memory
     d = pd.read_csv(path_str, usecols=lambda c: c.strip() in NEEDED_COLS)
@@ -129,12 +129,12 @@ def cells_in_boundary(pts, res=9):
     return set(h3.h3shape_to_cells(poly, res))
 
 
-@st.cache_
+@st.cache_resource
 def get_boundaries():
     return {name: load_boundary(p) for name, p in boundary_files.items()}
 
 
-@st.cache_resource
+@st.cache_
 def get_town_cells():
     return {name: cells_in_boundary(pts) for name, pts in get_boundaries().items()}
 
@@ -530,7 +530,7 @@ def homes_vs_business_png(tech):
 
 section = st.radio(
     "Section",
-    ["About & Resources", "Coverage Map", "Coverage by Municipality", "Cuba Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
+    ["About & s", "Coverage Map", "Coverage by Municipality", "Cuba Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
     horizontal=True,
     label_visibility="collapsed",
 )
