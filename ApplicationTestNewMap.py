@@ -564,17 +564,17 @@ if section == "About & Resources":
 
     st.header("Resources for Residents")
     st.markdown(
-        "**Check or correct your address**\n"
+        "**Check or correct your address:**\n"
         "- [FCC National Broadband Map](https://broadbandmap.fcc.gov): look up the providers "
         "reported at your address.\n"
         "- [How to submit a location challenge](https://help.bdc.fcc.gov/hc/en-us/articles/10475216120475-How-to-Submit-a-Location-Challenge): "
         "if your home or business is missing or listed wrongly.\n"
         "- [How to file an availability challenge](https://help.bdc.fcc.gov/hc/en-us/articles/10476040597787-How-to-File-an-Availability-Challenge): "
         "if a provider is listed but does not actually serve you.\n\n"
-        "**Help paying for service**\n"
+        "**Help paying for service:**\n"
         "- [FCC Lifeline program](https://www.fcc.gov/lifeline-consumer): a monthly discount on "
         "phone or internet service for eligible low-income households.\n\n"
-        "**New Mexico programs**\n"
+        "**State of New Mexico programs:**\n"
         "- [Connect New Mexico](https://connect.nm.gov/digital-opportunity.html): the state "
         "Office of Broadband Access and Expansion, with digital-opportunity resources.\n"
         "- [More info on resources available and programs in New Mexico](https://connect.nm.gov/programs.html): state "
