@@ -530,7 +530,7 @@ def homes_vs_business_png(tech):
 
 section = st.radio(
     "Section",
-    ["About & Resources", "5G Mobile Broadband Coverage", "5G Broadband Coverage by Municipality", "Cuba 5G Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
+    ["About & Resources", "5G Mobile Broadband Coverage Map", "5G Broadband Coverage by Municipality", "Cuba 5G Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -548,7 +548,7 @@ if section == "About & Resources":
     st.markdown(
         "- **5G Mobile Broadband Coverage map:** where each provider reports 5G coverage, by speed tier, as H3 hexagons.\n"
         "- **5G Broadband Coverage by Municipality:** the share of each town's area covered, by provider and speed tier.\n"
-        "- **Cuba 5G coverage over time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
+        "- **Cuba 5G Coverage Over Time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
         "- **Locations without fixed broadband:** the share of homes and businesses in each "
         "hexagon that no provider reports serving at 100 Mbps down / 20 Mbps up, or the share served.\n"
         "- **Homes vs businesses:** for each town, how service for homes compares with service for businesses."
@@ -584,7 +584,7 @@ if section == "About & Resources":
         "- [Connect New Mexico](https://connect.nm.gov/digital-opportunity.html): the state "
         "Office of Broadband Access and Expansion, with digital-opportunity resources.\n"
         "- [More info on resources available and programs in New Mexico](https://connect.nm.gov/programs.html): state "
-        "information on digital needs and how communities can take part."
+        "information on digital needs and how communities can access resources."
     )
 
 
@@ -661,7 +661,7 @@ elif section == "5G Broadband Coverage by Municipality":
         ))
 
 
-elif section == "Cuba 5GCoverage Over Time":
+elif section == "Cuba 5G Coverage Over Time":
     st.header("Cuba 5G Coverage Over Time")
 
     st.image(line_chart_png(), use_container_width=True)
