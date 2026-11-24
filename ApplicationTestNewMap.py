@@ -134,7 +134,7 @@ def get_boundaries():
     return {name: load_boundary(p) for name, p in boundary_files.items()}
 
 
-@st.cache_
+@st.cache_resource
 def get_town_cells():
     return {name: cells_in_boundary(pts) for name, pts in get_boundaries().items()}
 
