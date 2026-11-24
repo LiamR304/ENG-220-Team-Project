@@ -407,8 +407,14 @@ UNSERVED_HEX_CSV = Path("Datasets/unserved_by_hex.csv")
 UNSERVED_TOWN_CSV = Path("Datasets/unserved_by_town.csv")
 MAX_UNSERVED_CELLS = 20000
 UNSERVED_MEASURES = {
-    "No wired or fixed-wireless 100/20": "terrestrial",
-    "No wired (cable/fiber/copper) 100/20": "wired",
+    "Wired + licensed fixed wireless (FCC map default)": "wiredlfw",
+    "All terrestrial (wired + all fixed wireless)": "terrestrial",
+    "Wired only (cable, fiber, copper)": "wired",
+}
+SERVICE_KINDS = {
+    "Residential service": "res",
+    "Business service": "bus",
+    "Either (residential or business)": "all",
 }
 # (upper bound %, colour, label)
 UNSERVED_BINS = [(0, "#c7e9c0", "0% (all served)"), (25, "#fdd0a2", ">0-25%"), (50, "#fdae6b", "26-50%"),
@@ -561,8 +567,8 @@ if section == "About & Resources":
     st.subheader("Project Limitations")
     st.markdown(
         "- Coverage is self-reported by providers and is not a measured speed test.\n"
-        "- The fixed-broadband hexagon map counts a location as served if any provider reports "
-        "service there, residential or business grade, so it cannot show residential service on its own.\n"
+        "- On the fixed-broadband map, \"residential\" and \"business\" mean the type of customer a "
+        "provider says it offers service to at a location, not the type of building.\n"
         "- Hexagon percentages are noisy where a hexagon has only a few locations; use the "
         "minimum-locations slider.\n"
         "- The fixed-broadband section uses the FCC data release for June 2026 (last updated November 10, 2026)."
@@ -675,13 +681,14 @@ elif section == "Cuba 5G Coverage Over Time":
 elif section == "Locations Without Fixed Broadband":
     st.header("Locations Without Fixed Broadband")
     st.caption("FCC National Broadband Map, all fixed-broadband serviceable locations for Cuba, "
-               "Chama, Taos and Bloomfield. A location counts as served if any provider reports 100 Mbps "
-               "down / 20 Mbps up, whether the service is residential or business grade, so this can show "
-               "more locations as served than the FCC map set to Residential only. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
+               "Chama, Taos and Bloomfield. A location counts as served if a provider reports 100 Mbps "
+               "down / 20 Mbps up of the chosen type, offered to residential customers, business "
+               "customers, or either. Percentages are out of all locations in the hexagon. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
 
     st.sidebar.header("Map Options")
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
-    key = UNSERVED_MEASURES[measure]
+    kind_label = st.sidebar.selectbox("Service offered to", list(SERVICE_KINDS))
+    key = f"{UNSERVED_MEASURES[measure]}_{SERVICE_KINDS[kind_label]}"
     mode = "served" if st.sidebar.radio(
         "Color hexagons by", ["% without service", "% served (blue, like the FCC map)"]
     ).startswith("% served") else "unserved"
@@ -699,8 +706,8 @@ elif section == "Locations Without Fixed Broadband":
         sums = [c for c in hexes.columns if c == "total" or c.startswith("unserved_")]
         hexes = hexes.groupby("h3_res8_id", as_index=False).agg(
             {**{c: "sum" for c in sums}, "latitude": "first", "longitude": "first"})
-        for k in UNSERVED_MEASURES.values():
-            hexes[f"pct_unserved_{k}"] = (100 * hexes[f"unserved_{k}"] / hexes["total"]).round(1)
+        for c in [c for c in sums if c.startswith("unserved_")]:
+            hexes["pct_" + c] = (100 * hexes[c] / hexes["total"]).round(1)
     cells = hexes[(hexes["total"] >= min_locs) & (hexes[f"pct_unserved_{key}"] >= min_pct)]
     total_un = int(hexes[f"unserved_{key}"].sum())
     st.write(f"{total_un:,} of {int(hexes['total'].sum()):,} locations "
