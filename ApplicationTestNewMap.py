@@ -565,7 +565,7 @@ if section == "About & Resources":
         "businesses on their own.\n"
         "- Hexagon percentages are noisy where a hexagon has only a few locations; use the "
         "minimum-locations slider.\n"
-        "- The fixed-broadband section uses the FCC data release for June 2026 (downloaded November 2026)."
+        "- The fixed-broadband section uses the FCC data release for June 2026 (last updated November 2026)."
     )
 
     st.header("Resources for Residents")
@@ -583,7 +583,7 @@ if section == "About & Resources":
         "**New Mexico programs**\n"
         "- [Connect New Mexico](https://connect.nm.gov/digital-opportunity.html): the state "
         "Office of Broadband Access and Expansion, with digital-opportunity resources.\n"
-        "- [Digital needs in New Mexico](https://connect.nm.gov/digital-needs.html): state "
+        "- [More info on resources available and programs in New Mexico](https://connect.nm.gov/programs.html): state "
         "information on digital needs and how communities can take part."
     )
 
