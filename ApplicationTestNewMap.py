@@ -98,7 +98,7 @@ COMMUNITY_BOXES = {
 # The only columns the app ever reads (the CSVs have others, e.g. geometry_wkt, that are big)
 NEEDED_COLS = ["h3_res9_id", "latitude", "longitude", "providerid", "mindown", "minup"]
 # Cached loaders (Streamlit reruns the whole script on every click, so these keep it fast)
-# cache_ hands back the same object each time; cache_data would copy it on every call.
+# cache_resource hands back the same object each time; cache_data would copy it on every call.
 
 @st.cache_resource(max_entries=2)
 def load_csv(path_str):
@@ -508,20 +508,20 @@ def homes_vs_business_png(tech):
     x = np.arange(len(town_order))
     width = 0.38
     for ax, (col, label) in zip(axes, [("served_25_3", "25/3 Mbps"), ("served_100_20", "100/20 Mbps")]):
-        for i, (kind, name, color) in enumerate([("R", "Homes", "#4c78a8"), ("B", "Businesses", "#f58518")]):
+        for i, (kind, name, color) in enumerate([("R", "Residential service", "#4c78a8"), ("B", "Business service", "#f58518")]):
             vals = [100 - d[(d["town"] == t) & (d["biz_res"] == kind)][col].iloc[0] for t in town_order]
             bars = ax.bar(x + (i - 0.5) * width, vals, width, color=color, edgecolor="black",
                           linewidth=0.5, label=name)
             ax.bar_label(bars, fmt="%.0f%%", fontsize=8, padding=2)
-        ax.set_title(f"Without {label} service", fontsize=12, fontweight="bold")
+        ax.set_title(f"No {label} service", fontsize=12, fontweight="bold")
         ax.set_xticks(x)
         ax.set_xticklabels([t.replace(", NM", "") for t in town_order])
         ax.set_ylim(0, 105)
         ax.grid(axis="y", linestyle=":", alpha=0.5)
         ax.set_axisbelow(True)
-    axes[0].set_ylabel("% of units without service")
+    axes[0].set_ylabel("% of all units")
     axes[1].legend(loc="upper right", frameon=False)
-    fig.suptitle("Homes vs businesses: share of units without fixed broadband", fontsize=14)
+    fig.suptitle("Share of units without residential or business fixed broadband", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.94])
     return fig_to_png(fig)
 
@@ -530,7 +530,7 @@ def homes_vs_business_png(tech):
 
 section = st.radio(
     "Section",
-    ["About & Resources", "5G Mobile Broadband Coverage Map", "5G Broadband Coverage by Municipality", "Cuba 5G Coverage Over Time", "Locations Without Fixed Broadband", "Homes vs Businesses"],
+    ["About & Resources", "5G Mobile Broadband Coverage Map", "5G Broadband Coverage by Municipality", "Cuba 5G Coverage Over Time", "Locations Without Fixed Broadband", "Residential vs Business Service"],
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -549,9 +549,9 @@ if section == "About & Resources":
         "- **5G Mobile Broadband Coverage map:** where each provider reports 5G coverage, by speed tier, as H3 hexagons.\n"
         "- **5G Broadband Coverage by Municipality:** the share of each town's area covered, by provider and speed tier.\n"
         "- **Cuba 5G Coverage Over Time:** how Cuba's coverage changed between 2022, 2025 and 2026.\n"
-        "- **Locations without fixed broadband:** the share of homes and businesses in each "
+        "- **Locations without fixed broadband:** the share of locations in each "
         "hexagon that no provider reports serving at 100 Mbps down / 20 Mbps up, or the share served.\n"
-        "- **Homes vs businesses:** for each town, how service for homes compares with service for businesses."
+        "- **Residential vs Business Service:** for each town, the share of units where providers report residential-grade fixed broadband compared with business-grade fixed broadband."
     )
     st.subheader("Where the Data Comes From")
     st.write(
@@ -561,8 +561,8 @@ if section == "About & Resources":
     st.subheader("Project Limitations")
     st.markdown(
         "- Coverage is self-reported by providers and is not a measured speed test.\n"
-        "- The fixed-broadband map counts homes and businesses together, so it cannot show "
-        "businesses on their own.\n"
+        "- The fixed-broadband hexagon map counts a location as served if any provider reports "
+        "service there, residential or business grade, so it cannot show residential service on its own.\n"
         "- Hexagon percentages are noisy where a hexagon has only a few locations; use the "
         "minimum-locations slider.\n"
         "- The fixed-broadband section uses the FCC data release for June 2026 (last updated November 10, 2026)."
@@ -674,15 +674,16 @@ elif section == "Cuba 5G Coverage Over Time":
 
 elif section == "Locations Without Fixed Broadband":
     st.header("Locations Without Fixed Broadband")
-    st.caption("FCC National Broadband Map, all fixed-broadband serviceable locations (homes and "
-               "businesses together) for Cuba, Chama, Taos and Bloomfield. A location counts as served if a provider reports 100 Mbps "
-               "down / 20 Mbps up. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
+    st.caption("FCC National Broadband Map, all fixed-broadband serviceable locations for Cuba, "
+               "Chama, Taos and Bloomfield. A location counts as served if any provider reports 100 Mbps "
+               "down / 20 Mbps up, whether the service is residential or business grade, so this can show "
+               "more locations as served than the FCC map set to Residential only. Each hexagon is about 0.7 km\u00b2 (H3 resolution 8).")
 
     st.sidebar.header("Map Options")
     measure = st.sidebar.selectbox("Service type", list(UNSERVED_MEASURES))
     key = UNSERVED_MEASURES[measure]
     mode = "served" if st.sidebar.radio(
-        "Color hexagons by", ["% without service", "% served"]
+        "Color hexagons by", ["% without service", "% served (blue, like the FCC map)"]
     ).startswith("% served") else "unserved"
     towns_all = load_unserved_towns()["town"].tolist()
     town_sel = st.sidebar.selectbox("Municipality", ["All municipalities"] + towns_all)
@@ -724,19 +725,21 @@ elif section == "Locations Without Fixed Broadband":
                           f"pct_unserved_{key}": "% without service"}), hide_index=True)
 
 
-elif section == "Homes vs Businesses":
-    st.header("Homes vs Businesses")
-    st.caption("From the FCC place summary (June 2026 release). Shows the share of homes and of "
-               "businesses in each town that have no fixed broadband at the speed shown. Below "
-               "25/3 Mbps is generally treated as unserved; below 100/20 as underserved or unserved.")
+elif section == "Residential vs Business Service":
+    st.header("Residential vs Business Service")
+    st.caption("From the FCC place summary (June 2026 release). Each bar is the share of all units in "
+               "the town where no provider reports residential (or business) fixed broadband service at "
+               "the speed shown. Residential and business service are reported separately, so a unit "
+               "can have one, both or neither. Below 25/3 Mbps is generally treated as unserved; below "
+               "100/20 as underserved or unserved.")
     tech_label = st.selectbox("Service type", list(TECH_CHOICES))
     tech = TECH_CHOICES[tech_label]
     st.image(homes_vs_business_png(tech), use_container_width=True)
 
-    with st.expander("Show data table (% of units served)"):
+    with st.expander("Show data table (% of all units with service reported)"):
         t = load_fixed_summary()
         t = t[t["technology"] == tech].copy()
-        t["type"] = t["biz_res"].map({"R": "Homes", "B": "Businesses"})
+        t["type"] = t["biz_res"].map({"R": "Residential service", "B": "Business service"})
         st.dataframe(t[["town", "type", "total_units", "served_25_3", "served_100_20"]].rename(columns={
-            "total_units": "units in town (homes + businesses)", "served_25_3": "% served 25/3",
+            "total_units": "total units in town", "served_25_3": "% served 25/3",
             "served_100_20": "% served 100/20"}), hide_index=True)
