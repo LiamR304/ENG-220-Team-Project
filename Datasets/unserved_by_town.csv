@@ -1,0 +1,5 @@
+town,total,unserved_wired_res,unserved_wired_bus,unserved_wired_all,unserved_wiredlfw_res,unserved_wiredlfw_bus,unserved_wiredlfw_all,unserved_terrestrial_res,unserved_terrestrial_bus,unserved_terrestrial_all,pct_unserved_wired_res,pct_unserved_wired_bus,pct_unserved_wired_all,pct_unserved_wiredlfw_res,pct_unserved_wiredlfw_bus,pct_unserved_wiredlfw_all,pct_unserved_terrestrial_res,pct_unserved_terrestrial_bus,pct_unserved_terrestrial_all
+"Bloomfield, NM",2949,246,246,246,185,222,165,163,186,150,8.3,8.3,8.3,6.3,7.5,5.6,5.5,6.3,5.1
+"Chama, NM",716,647,646,646,87,559,0,87,559,0,90.4,90.2,90.2,12.2,78.1,0.0,12.2,78.1,0.0
+"Cuba, NM",758,715,715,715,704,700,700,355,409,60,94.3,94.3,94.3,92.9,92.3,92.3,46.8,54.0,7.9
+"Taos, NM",4124,246,1116,96,219,1042,88,0,0,0,6.0,27.1,2.3,5.3,25.3,2.1,0.0,0.0,0.0
